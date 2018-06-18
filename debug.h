@@ -3,7 +3,7 @@
 
 #include "tuntap.h"
 
-void printHexadecimal(char *frame, int length);
+void printHexadecimal(unsigned char *frame, int length);
 void printEtherFrame(eth_hdr frame);
 
 #endif 

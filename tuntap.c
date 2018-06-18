@@ -14,6 +14,9 @@
 #include <linux/if_ether.h>
 #include <linux/if_tun.h>
 
+//Provide htons
+#include <arpa/inet.h>
+
 //For low level access to linux network devices
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -31,6 +34,8 @@
 
 //File descriptor of our card
 int tun_fd;
+
+int frameCounter = 0;
 
 //Read data from the card and put it in buf
 int tun_read(char *buf, int len)
@@ -78,28 +83,44 @@ int tun_alloc(char *dev)
 
     //Store the fd as a global variable 
     tun_fd = fd;
+
+    //Ifconfig up the card
+    char ifconfig[256];
+    sprintf(ifconfig,"ifconfig %s up", ifr.ifr_name);
+    system(ifconfig);
     return fd;
 }
 
 int handle_frame()
 {
     //Allocate a buffer
-    char *buf = malloc(BUFLEN);
+    unsigned char *buf = malloc(BUFLEN);
         
     //Read from the card 
-    if (tun_read(buf, BUFLEN) < 0) {
+    if (tun_read((char *)buf, BUFLEN) < 0) {
         print_error("ERR: Read from tun_fd: %s\n", strerror(errno));
         exit(1);
     }
 
-    printf("New frame \n");
+    printf("\nNew frame %d \n", frameCounter);
+    frameCounter++;
 
     //Convert the frame to ethernet header
     struct eth_hdr *hdr = (struct eth_hdr *) buf;
-    
-    //Parse the frame and print some info
+
+    //Convert the ethertype to be in the good order
+    hdr->ethertype = ntohs(hdr->ethertype);
+
     printEtherFrame(*hdr);
-    
+
+    switch(hdr->ethertype)
+    {
+        case ARP_FRAME:
+            printf("Handling arp frame\n");
+            break;
+    }
+
+    return 0;
 }
 
 

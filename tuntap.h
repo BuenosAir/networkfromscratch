@@ -19,9 +19,12 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-//Contains the header of our ethernet requests
-typedef struct eth_hdr eth_hdr;
+#include "util.h"
 
+#define ARP_FRAME 0x0806
+#define IPV6_FRAME 0x86DD
+
+//Contains the header of our ethernet requests
 struct eth_hdr
 {
     unsigned char dmac[6];
@@ -34,8 +37,10 @@ struct eth_hdr
     //Must be greater than 48 bytes or it is filled with zeroes
     unsigned char *payload;
 } __attribute__((packed));
+typedef struct eth_hdr eth_hdr;
 
 int tun_alloc(char *dev);
 int tun_read(char *buf, int len);
+int handle_frame();
 
 #endif

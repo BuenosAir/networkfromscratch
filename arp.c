@@ -16,7 +16,5 @@ typedef struct arp_hdr arp_hdr;
 
 int * arpAnswer()
 {
-    arp_hdr a;
-
 }
 
