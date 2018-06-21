@@ -35,7 +35,7 @@ struct eth_hdr
     uint16_t ethertype;
 
     //Must be greater than 48 bytes or it is filled with zeroes
-    unsigned char *payload;
+    unsigned char payload[];
 } __attribute__((packed));
 typedef struct eth_hdr eth_hdr;
 

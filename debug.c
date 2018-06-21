@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "tuntap.h"
+#include "arp.h"
 
 void printHexadecimal(unsigned char *frame, int length)
 {
@@ -34,4 +35,13 @@ void printEtherFrame(eth_hdr frame)
             break;
     }
     printf("\n");
+}
+
+void printArpFrame(arp_hdr arp)
+{
+    printf("hwtype : %x\n", arp.hwtype);
+    printf("protype : %x\n", arp.protype);
+    printf("hwsize : %x\n", arp.hwsize);
+    printf("prosize : %x\n", arp.prosize);
+    printf("opcode : %x\n", arp.opcode);
 }

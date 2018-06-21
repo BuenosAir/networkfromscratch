@@ -117,6 +117,7 @@ int handle_frame()
     {
         case ARP_FRAME:
             printf("Handling arp frame\n");
+            arp_handling(hdr);
             break;
     }
 
