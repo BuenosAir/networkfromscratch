@@ -10,6 +10,7 @@
 #include "arp.h"
 #include "debug.h"
 
+#define IP_DECIMAL 167772165 //10.0.0.5
 
 void arp_handling(eth_hdr *hdr)
 {
@@ -79,9 +80,10 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
     struct ifreq *ifr = getNetworkCard();
 
     //Check if the request is for us
-    if(! compareMac(arpIp4->dmac,(unsigned char *) ifr->ifr_hwaddr.sa_data))
+    uint32_t localIpAddress = getLocalIpAddress();
+    if(ntohl(arpIp4->dip) != ntohl(localIpAddress))
     {
-        //This request is not for us
+        printf("This is not for us\n");
         return;
     }
 
@@ -95,17 +97,18 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
 
     //Fill the ethernet frame
     memcpy(answer->dmac, hdr->smac, 6);
-    /*memcpy(answer->smac, hdr->dmac, 6);*/
+    //TODO: check 
     memcpy(answer->smac, ifr->ifr_hwaddr.sa_data, 6);
     
-    answer->ethertype = ARP_HEADER_LENGTH + ARP_IPV4_LENGTH;
+    answer->ethertype = htons(ARP_FRAME);
 
     //Fill the arp frame
     arp_hdr *arpAnswer = (arp_hdr *) answer->payload;
-    arpAnswer->hwtype  = ARP_ETHERNET; //Ethernet frame
-    arpAnswer->protype = ARP_IP; //IP
-    arpAnswer->hwsize  = ARP_HWSIZE;
-    arpAnswer->prosize = ARP_IPV4_LENGTH;
+    arpAnswer->hwtype  = htons(ARP_ETHERNET); 
+    arpAnswer->protype = htons(ARP_IP); 
+    arpAnswer->hwsize  = ARP_HWSIZE; 
+    arpAnswer->prosize = ARP_PROSIZE;
+    arpAnswer->opcode = htons(2); //Opcode for answer
 
     //Fill the arp data
     arp_ipv4 *arpData = (arp_ipv4 *)arpAnswer->data;
@@ -113,17 +116,17 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
     memcpy(arpData->dmac, arpIp4->dmac, 6);
 
     //Give our own ip address
-    inet_pton(AF_INET, IF_IP_ADRESS, &arpData->sip);
+    inet_pton(AF_INET, DEFAULT_IP_ADDRESS, &arpData->sip);
 
     arpData->dip = arpIp4->sip;
 
-    printf("Frame prepared\n");
+    printf("Sending : ");
 
     int written = tun_write((char *) answer,ETHERNET_HEADER_LENGTH + ARP_HEADER_LENGTH + ARP_IPV4_LENGTH );
 
     if(written > 0)
     {
-        printf("Frame successfully sent ! \n");
+        printf("OK\n");
     }
     else 
     {

@@ -40,7 +40,11 @@ int tun_fd;
 //Store then network card descriptor as a global variable
 struct ifreq ifr;
 
+//Count the frame received by the card for better printing
 int frameCounter = 0;
+
+//Store the ip address as global 
+uint32_t localIpAddress;
 
 //Read data from the card and put it in buf
 int tun_read(char *buf, int len)
@@ -54,7 +58,7 @@ int tun_write(char *buf, int len)
 }
 
 //Allocate the tun card 
-int tun_alloc(char *dev)
+int tun_alloc(char *dev, unsigned char *macAdress)
 {
     int fd, err;
 
@@ -74,7 +78,6 @@ int tun_alloc(char *dev)
      *        IFF_NO_PI - Do not provide packet information
      */
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-
 
     if( *dev ) {
         printf("Setting card name to %s \n", dev);
@@ -102,27 +105,38 @@ int tun_alloc(char *dev)
         exit(1);
     }
 
-    char hwaddr[6];
-    hwaddr[0] = 0xCA;
-    hwaddr[1] = 0xCA;
-    hwaddr[2] = 0xCA;
-    hwaddr[3] = 0xCA;
-    hwaddr[4] = 0xCA;
-    hwaddr[5] = 0xCA;
+    unsigned char hwaddr[6];
+    unsigned char *pointerToMac;
+    if(macAdress != NULL)
+    {
+        pointerToMac = macAdress;
+    }
+    else
+    {
+        hwaddr[0] = 0xCA;
+        hwaddr[1] = 0xCA;
+        hwaddr[2] = 0xCA;
+        hwaddr[3] = 0xCA;
+        hwaddr[4] = 0xCA;
+        hwaddr[5] = 0xCA;
+        pointerToMac = hwaddr;
+    }
 
-    memcpy(ifr.ifr_hwaddr.sa_data, hwaddr, 6);
-
+    memcpy(ifr.ifr_hwaddr.sa_data, pointerToMac, 6);
+    
     //Set the mac address
-   if( (err = ioctl(fd, SIOCSIFHWADDR, &ifr)) < 0 )
-   {
-       printf("Cannot set mac address : %s\n", strerror(errno));
-       close(fd);
-       exit(1);
-   }
+    if( (err = ioctl(fd, SIOCSIFHWADDR, &ifr)) < 0 )
+    {
+        printf("Cannot set mac address : %s\n", strerror(errno));
+        close(fd);
+        exit(1);
+    }
 
     printf("Mac : ");
     printHexadecimal((unsigned char *) &ifr, sizeof(ifr));
     printf("\n");
+
+    //TODO : Set the ip address
 
     //Ifconfig up the card
     char ifconfig[256];
@@ -170,4 +184,13 @@ int handle_frame()
     return 0;
 }
 
+//You didnt saw these lines
+uint32_t getLocalIpAddress()
+{
+    return localIpAddress;
+}
 
+void setLocalIpAddress(uint32_t ip)
+{
+    localIpAddress = ip;
+}

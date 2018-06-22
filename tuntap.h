@@ -27,7 +27,7 @@
 #define ETHERNET_HEADER_LENGTH (6 * 2  + 2)
 
 //Our ip address
-#define IF_IP_ADRESS "10.0.0.5"
+#define DEFAULT_IP_ADDRESS "10.0.0.5"
 
 //Contains the header of our ethernet requests
 struct eth_hdr
@@ -44,10 +44,12 @@ struct eth_hdr
 } __attribute__((packed));
 typedef struct eth_hdr eth_hdr;
 
-int tun_alloc(char *dev);
+int tun_alloc(char *dev, unsigned char *macAdress);
 int tun_read(char *buf, int len);
 int tun_write(char *buf, int len);
 int handle_frame();
+void setLocalIpAddress(uint32_t ip);
+uint32_t getLocalIpAddress();
 struct ifreq * getNetworkCard();
 
 #endif
