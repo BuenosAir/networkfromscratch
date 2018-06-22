@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <arpa/inet.h>
 #include "tuntap.h"
 #include "arp.h"
 
@@ -9,6 +10,17 @@ void printHexadecimal(unsigned char *frame, int length)
     {
         printf("%02x ", frame[i]);
     }
+}
+
+void printArpRequest(arp_ipv4 arp)
+{
+    struct in_addr tmp_addr;
+    tmp_addr.s_addr = arp.sip;
+
+    printf("Source ip : %s \n", inet_ntoa(tmp_addr));
+
+    tmp_addr.s_addr = arp.dip;
+    printf("Destination ip : %s\n", inet_ntoa(tmp_addr));
 }
 
 void printEtherFrame(eth_hdr frame)

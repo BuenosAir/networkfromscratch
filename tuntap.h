@@ -24,6 +24,11 @@
 #define ARP_FRAME 0x0806
 #define IPV6_FRAME 0x86DD
 
+#define ETHERNET_HEADER_LENGTH (6 * 2  + 2)
+
+//Our ip address
+#define IF_IP_ADRESS "10.0.0.5"
+
 //Contains the header of our ethernet requests
 struct eth_hdr
 {
@@ -41,6 +46,8 @@ typedef struct eth_hdr eth_hdr;
 
 int tun_alloc(char *dev);
 int tun_read(char *buf, int len);
+int tun_write(char *buf, int len);
 int handle_frame();
+struct ifreq * getNetworkCard();
 
 #endif

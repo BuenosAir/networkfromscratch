@@ -21,6 +21,8 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
+#include <net/if_arp.h>
+
 #include <string.h>
 
 #include <errno.h>
@@ -35,6 +37,9 @@
 //File descriptor of our card
 int tun_fd;
 
+//Store then network card descriptor as a global variable
+struct ifreq ifr;
+
 int frameCounter = 0;
 
 //Read data from the card and put it in buf
@@ -43,11 +48,14 @@ int tun_read(char *buf, int len)
     return read(tun_fd, buf, len );
 }
 
+int tun_write(char *buf, int len)
+{
+    return write(tun_fd, buf, len);
+}
 
 //Allocate the tun card 
 int tun_alloc(char *dev)
 {
-    struct ifreq ifr;
     int fd, err;
 
     printf("Opening dev/net/tun\n");
@@ -66,6 +74,8 @@ int tun_alloc(char *dev)
      *        IFF_NO_PI - Do not provide packet information
      */
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+
+
     if( *dev ) {
         printf("Setting card name to %s \n", dev);
         strncpy(ifr.ifr_name, dev, IFNAMSIZ);
@@ -84,11 +94,47 @@ int tun_alloc(char *dev)
     //Store the fd as a global variable 
     tun_fd = fd;
 
+    //Get the mac address
+    if ((err = ioctl(fd, SIOCGIFHWADDR, &ifr)) < 0)  
+    {
+        printf("Cannot get mac address of the interface : %s \n", strerror(errno));
+        close(fd);
+        exit(1);
+    }
+
+    char hwaddr[6];
+    hwaddr[0] = 0xCA;
+    hwaddr[1] = 0xCA;
+    hwaddr[2] = 0xCA;
+    hwaddr[3] = 0xCA;
+    hwaddr[4] = 0xCA;
+    hwaddr[5] = 0xCA;
+
+    memcpy(ifr.ifr_hwaddr.sa_data, hwaddr, 6);
+
+    //Set the mac address
+   if( (err = ioctl(fd, SIOCSIFHWADDR, &ifr)) < 0 )
+   {
+       printf("Cannot set mac address : %s\n", strerror(errno));
+       close(fd);
+       exit(1);
+   }
+
+    printf("Mac : ");
+    printHexadecimal((unsigned char *) &ifr, sizeof(ifr));
+    printf("\n");
+
     //Ifconfig up the card
     char ifconfig[256];
     sprintf(ifconfig,"ifconfig %s up", ifr.ifr_name);
     system(ifconfig);
+
     return fd;
+}
+
+struct ifreq * getNetworkCard()
+{
+    return &ifr;
 }
 
 int handle_frame()
