@@ -11,6 +11,16 @@
 #include "debug.h"
 
 #define IP_DECIMAL 167772165 //10.0.0.5
+#define MAX_ARP_ENTRY 256
+
+arp_entry arpCache[MAX_ARP_ENTRY];
+
+
+void initializeArpCache()
+{
+    printf("Nulling arpCache \n");
+    memset(arpCache, 0, sizeof(arp_entry) * MAX_ARP_ENTRY);
+}
 
 void arp_handling(eth_hdr *hdr)
 {
@@ -139,6 +149,44 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
 void handle_arp_answer(arp_hdr *arpHdr)
 {
     printf("Handling arp answer \n");
+
+    arp_ipv4 *arpIp4 = (arp_ipv4 *)arpHdr->data;
+
+    printArpRequest(*arpIp4);
+    
+    int ipPosition = searchIpInCache(ntohl(arpIp4->sip));
+    if(ipPosition)
+    {
+        printf("Arp cache is full, exiting\n");
+        exit(1);
+    }
+    
+    //Update/Insert the entry in cache 
+    arpCache[ipPosition].ip = ntohl(arpIp4->sip);
+
+    //TODO TODO TODO If it crash, it comes from here TODO TODO TODO
+    strncpy((char *) arpCache[ipPosition].mac, ( char *)arpIp4->smac, 6);
+
+    printf("Entry updated for %s at position %d\n", arpCache[ipPosition].mac, ipPosition);
     return;
+}
+
+//Not efficient, but that's not the point of this programm
+int searchIpInCache(uint32_t ip)
+{
+    int i = 0;
+    for(i = 0; i < MAX_ARP_ENTRY; i++)
+    {
+        if(arpCache[i].ip == 0)
+        {
+            return i;
+        }
+        else if(arpCache[i].ip == ip)
+        {
+            return i;
+        }
+    }
+    
+    return -1;
 }
 

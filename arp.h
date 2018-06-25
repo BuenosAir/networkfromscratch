@@ -41,11 +41,15 @@ typedef struct arp_ipv4 arp_ipv4;
 struct arp_entry
 {
     unsigned char mac[6];
-    unsigned char ip[4];
+    uint32_t ip;
 } __attribute__((packed));
+
+typedef struct arp_entry arp_entry;
 
 void arp_handling(eth_hdr *hdr);
 void handle_arp_answer(arp_hdr *arpHdr);
 void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr);
+void initializeArpCache();
+int searchIpInCache(uint32_t ip);
 
 #endif

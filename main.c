@@ -18,6 +18,9 @@ int main(int argc, char **argv)
     int ret;
     uint32_t ipAdress;
 
+    //Initialize arp cache
+    initializeArpCache();
+
     if(argc > 1)
     {
         printf("Using user specified IP\n");
