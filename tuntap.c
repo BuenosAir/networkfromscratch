@@ -29,6 +29,8 @@
 
 #include "debug.h"
 
+#include "ip.h"
+
 #define print_error printf
 
 //Size of the buffer
@@ -209,16 +211,17 @@ int handle_frame()
     //Convert the frame to ethernet header
     struct eth_hdr *hdr = (struct eth_hdr *) buf;
 
-    //Convert the ethertype to be in the good order
-    hdr->ethertype = ntohs(hdr->ethertype);
-
     printEtherFrame(*hdr);
 
-    switch(hdr->ethertype)
+    switch(ntohs(hdr->ethertype))
     {
         case ARP_FRAME:
             printf("Handling arp frame\n");
             arp_handling(hdr);
+            break;
+        case IPV4_FRAME:
+            printf("Handling ipv4 frame\n");
+            ipv4_handling(hdr);
             break;
     }
 

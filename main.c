@@ -42,7 +42,6 @@ int main(int argc, char **argv)
     }
     
     //Convert ipAddress to hardware long
-
     ipAdress = ntohl(ipAdress);
 
     setLocalIpAddress(ipAdress);

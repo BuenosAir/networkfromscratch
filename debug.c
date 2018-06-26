@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include "tuntap.h"
 #include "arp.h"
+#include "ip.h"
 
 void printHexadecimal(unsigned char *frame, int length)
 {
@@ -23,6 +24,14 @@ void printArpRequest(arp_ipv4 arp)
     printf("Destination ip : %s\n", inet_ntoa(tmp_addr));
 }
 
+void printIpv4Frame(ipv4_hdr *ip)
+{
+    struct in_addr saddr, daddr;
+    saddr.s_addr = ip->saddr;
+    daddr.s_addr = ip->daddr;
+    printf("version %d ihl %d tos %d len %d id %d flags frag_offset %04x ttl %d proto %d csum %d saddr %s daddr %s\n", ip->version, ip->ihl, ntohl(ip->tos), ntohs(ip->len), ntohs(ip->id),ip->flagsAndOffset, ip->ttl, ip->proto, ntohs(ip->csum), inet_ntoa(saddr), inet_ntoa(daddr));
+}
+
 void printEtherFrame(eth_hdr frame)
 {
     printf("Dmac : ");
@@ -34,7 +43,7 @@ void printEtherFrame(eth_hdr frame)
     printf("Type : " );
 
     unsigned char ethertype[2];
-    switch(frame.ethertype)
+    switch(ntohs(frame.ethertype))
     {
         case ARP_FRAME: 
             printf("ARP"); break;
