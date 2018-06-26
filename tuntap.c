@@ -58,7 +58,7 @@ int tun_write(char *buf, int len)
 }
 
 //Allocate the tun card 
-int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAdress)
+int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAddress)
 {
     int fd, err;
 
@@ -136,21 +136,24 @@ int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAdress)
     printHexadecimal((unsigned char *) &ifr, sizeof(ifr));
     printf("\n");
 
-    //TODO : Set the ip address
-    //We will use a /24 for the card
-    struct in_addr ipAddr;
-    ipAddr.s_addr = htonl(ipAdress & 0xFFFFFF00);
-    char *ipAdressChar = inet_ntoa(ipAddr);
-    if(ipAdressChar == NULL)
-    {
-        printf("Cannot convert ip address to char \n");
-        exit(1);
-    }
-
-    printf("Using range : %s/24 \n", ipAdressChar);
-
     char command[256];
     int ret;
+    
+    //We will use a /24 for the card
+    struct in_addr ipAddr;
+    ipAddr.s_addr = htonl(ipAddress);
+    char *ipAddressChar = inet_ntoa(ipAddr);
+
+    //Dont do it, otherwise it is the card that will answer the pings, not our programm
+    /*sprintf(command, "ip address add dev %s local %s", dev, ipAddressChar);*/
+    /*ret = system(command);*/
+    /*if(ret != 0)*/
+    /*{*/
+        /*printf("\nCannot set ip address to card\n");*/
+        /*printf("\n");*/
+        /*sleep(1000);*/
+        /*exit(1);*/
+    /*}*/
 
     //Ifconfig up the card
     sprintf(command, "ifconfig %s up", ifr.ifr_name);
@@ -161,7 +164,18 @@ int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAdress)
         exit(1);
     }
 
-    sprintf(command, "ip route add dev %s %s/24", dev, ipAdressChar );
+    //We will use a /24 for the card
+    ipAddr.s_addr = htonl(ipAddress & 0xFFFFFF00);
+    ipAddressChar = inet_ntoa(ipAddr);
+    if(ipAddressChar == NULL)
+    {
+        printf("Cannot convert ip address to char \n");
+        exit(1);
+    }
+
+    printf("Using range : %s/24 \n", ipAddressChar);
+
+    sprintf(command, "ip route add dev %s %s/24", dev, ipAddressChar );
     ret = system(command);
     if(ret != 0)
     {
