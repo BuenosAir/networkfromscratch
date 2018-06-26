@@ -43,7 +43,7 @@ struct ifreq ifr;
 //Count the frame received by the card for better printing
 int frameCounter = 0;
 
-//Store the ip address as global 
+//Store the ip address as global to machine encoding
 uint32_t localIpAddress;
 
 //Read data from the card and put it in buf
@@ -58,7 +58,7 @@ int tun_write(char *buf, int len)
 }
 
 //Allocate the tun card 
-int tun_alloc(char *dev, unsigned char *macAdress)
+int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAdress)
 {
     int fd, err;
 
@@ -137,11 +137,38 @@ int tun_alloc(char *dev, unsigned char *macAdress)
     printf("\n");
 
     //TODO : Set the ip address
+    //We will use a /24 for the card
+    struct in_addr ipAddr;
+    ipAddr.s_addr = htonl(ipAdress & 0xFFFFFF00);
+    char *ipAdressChar = inet_ntoa(ipAddr);
+    if(ipAdressChar == NULL)
+    {
+        printf("Cannot convert ip address to char \n");
+        exit(1);
+    }
+
+    printf("Using range : %s/24 \n", ipAdressChar);
+
+    char command[256];
+    int ret;
 
     //Ifconfig up the card
-    char ifconfig[256];
-    sprintf(ifconfig,"ifconfig %s up", ifr.ifr_name);
-    system(ifconfig);
+    sprintf(command, "ifconfig %s up", ifr.ifr_name);
+    ret = system(command);
+    if(ret != 0)
+    {
+        printf("Cannot up the card\n");
+        exit(1);
+    }
+
+    sprintf(command, "ip route add dev %s %s/24", dev, ipAdressChar );
+    ret = system(command);
+    if(ret != 0)
+    {
+        printf("Cannot add route to our card\n");
+        exit(1);
+    }
+
 
     return fd;
 }
@@ -193,4 +220,14 @@ uint32_t getLocalIpAddress()
 void setLocalIpAddress(uint32_t ip)
 {
     localIpAddress = ip;
+
+}
+
+int setRouteToCard(char *cardName, char *cidr)
+{
+    char command[256];
+    sprintf(command, "ip route add dev %s %s", cardName, cidr);
+    //TODO: Add return
+
+    return system(command);
 }

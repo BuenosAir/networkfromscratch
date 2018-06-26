@@ -91,7 +91,7 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
 
     //Check if the request is for us
     uint32_t localIpAddress = getLocalIpAddress();
-    if(ntohl(arpIp4->dip) != ntohl(localIpAddress))
+    if(ntohl(arpIp4->dip) != localIpAddress)
     {
         printf("This is not for us\n");
         return;

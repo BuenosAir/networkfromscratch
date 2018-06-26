@@ -44,7 +44,7 @@ struct eth_hdr
 } __attribute__((packed));
 typedef struct eth_hdr eth_hdr;
 
-int tun_alloc(char *dev, unsigned char *macAdress);
+int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAdress);
 int tun_read(char *buf, int len);
 int tun_write(char *buf, int len);
 int handle_frame();

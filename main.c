@@ -40,6 +40,11 @@ int main(int argc, char **argv)
             exit(1);
         }
     }
+    
+    //Convert ipAddress to hardware long
+
+    ipAdress = ntohl(ipAdress);
+
     setLocalIpAddress(ipAdress);
 
     char * macAdress = NULL;
@@ -67,7 +72,7 @@ int main(int argc, char **argv)
     }
     
     char *cardName = malloc(512);
-    ret = tun_alloc(cardName, (unsigned char *) macAdress);
+    ret = tun_alloc(cardName, (unsigned char *) macAdress, ipAdress);
 
     printf("Created the tun/tap card with name : %s \n", cardName);
 
