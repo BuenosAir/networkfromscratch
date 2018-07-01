@@ -119,14 +119,15 @@ void handle_arp_request(arp_hdr * arpHdr, eth_hdr *hdr)
     arpAnswer->hwsize  = ARP_HWSIZE; 
     arpAnswer->prosize = ARP_PROSIZE;
     arpAnswer->opcode = htons(2); //Opcode for answer
-
+    
     //Fill the arp data
     arp_ipv4 *arpData = (arp_ipv4 *)arpAnswer->data;
     memcpy(arpData->smac, ifr->ifr_hwaddr.sa_data, 6);
-    memcpy(arpData->dmac, arpIp4->dmac, 6);
+    memcpy(arpData->dmac, arpIp4->smac, 6);
 
     //Give our own ip address
-    inet_pton(AF_INET, DEFAULT_IP_ADDRESS, &arpData->sip);
+    /*inet_pton(AF_INET, DEFAULT_IP_ADDRESS, &arpData->sip);*/
+    arpData->sip = htonl(getLocalIpAddress()); 
 
     arpData->dip = arpIp4->sip;
 

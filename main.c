@@ -21,6 +21,8 @@ int main(int argc, char **argv)
     //Initialize arp cache
     initializeArpCache();
 
+    initializeEthernet();
+
     if(argc > 1)
     {
         printf("Using user specified IP\n");

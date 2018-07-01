@@ -53,3 +53,32 @@ int scanfMacAdress(char *source, char dest[6])
             );
 }
 
+//TODO: Improve the function, the carry is wrong if the packet is too large
+uint16_t checksumData(void *data, int length) 
+{
+    int i = length;
+    uint32_t sum = 0;
+    uint16_t *ptr = (uint16_t *) data;
+
+    while(i > 1)
+    {
+        sum += *ptr++;
+        i -= 2;
+    }
+
+    if(i > 0)
+    {
+        sum += *(uint8_t *)ptr++;
+    }
+
+    //Add the carry and return
+
+    //Transform into a 16 bit result and add the rest of the sum
+    while(sum >> 16)
+    {
+        sum = (sum >> 16) + sum & 0xFFFF;
+    }
+    
+    return ~(uint16_t)sum;
+}
+

@@ -51,5 +51,7 @@ int handle_frame();
 void setLocalIpAddress(uint32_t ip);
 uint32_t getLocalIpAddress();
 struct ifreq * getNetworkCard();
+void initializeEthernet();
+char * getBroadcastMacAddress();
 
 #endif

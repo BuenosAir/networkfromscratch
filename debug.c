@@ -3,6 +3,7 @@
 #include "tuntap.h"
 #include "arp.h"
 #include "ip.h"
+#include "icmp.h"
 
 void printHexadecimal(unsigned char *frame, int length)
 {
@@ -11,6 +12,11 @@ void printHexadecimal(unsigned char *frame, int length)
     {
         printf("%02x ", frame[i]);
     }
+}
+
+void printIcmpFrame(icmp_hdr *icmp)
+{
+    printf("Type : %02x Code : %02x csum %04x \n",icmp->type, icmp->code, icmp->csum);
 }
 
 void printArpRequest(arp_ipv4 arp)

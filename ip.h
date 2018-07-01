@@ -4,6 +4,7 @@
 #include "tuntap.h"
 
 #define IPV4_FRAME 0x0800
+#define IPV4_HEADER_LENGTH 1 + 1 + 2 + 2 + 2 + 1 + 1 + 2 + 4 + 4
 
 //Only numbers (not flags) coded on >= 8 bits are to ntohs
 struct ipv4_hdr{
@@ -25,5 +26,6 @@ struct ipv4_hdr{
 typedef struct ipv4_hdr ipv4_hdr;
 
 void ipv4_handling(eth_hdr *hdr);
+uint16_t checksumIP(ipv4_hdr *hdr);
 
 #endif

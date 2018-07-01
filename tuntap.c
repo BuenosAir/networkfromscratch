@@ -48,6 +48,9 @@ int frameCounter = 0;
 //Store the ip address as global to machine encoding
 uint32_t localIpAddress;
 
+//Store the broadcastMacAddress
+char broadcastMacAddress[6];
+
 //Read data from the card and put it in buf
 int tun_read(char *buf, int len)
 {
@@ -93,7 +96,6 @@ int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAddress)
         exit(1);
     }
 
-    printf("Copying back card name\n");
     strcpy(dev, ifr.ifr_name);
 
     //Store the fd as a global variable 
@@ -158,6 +160,7 @@ int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAddress)
     /*}*/
 
     //Ifconfig up the card
+    printf("Uping the card\n");
     sprintf(command, "ifconfig %s up", ifr.ifr_name);
     ret = system(command);
     if(ret != 0)
@@ -177,7 +180,7 @@ int tun_alloc(char *dev, unsigned char *macAdress, uint32_t ipAddress)
 
     printf("Using range : %s/24 \n", ipAddressChar);
 
-    sprintf(command, "ip route add dev %s %s/24", dev, ipAddressChar );
+    /*sprintf(command, "ip route add dev %s %s/24", dev, ipAddressChar );*/
     ret = system(command);
     if(ret != 0)
     {
@@ -200,13 +203,16 @@ int handle_frame()
     unsigned char *buf = malloc(BUFLEN);
         
     //Read from the card 
-    if (tun_read((char *)buf, BUFLEN) < 0) {
+    int readed = tun_read((char *)buf, BUFLEN);
+    if ( readed < 0) {
         print_error("ERR: Read from tun_fd: %s\n", strerror(errno));
         exit(1);
     }
 
-    printf("\nNew frame %d \n", frameCounter);
+    printf("\nNew frame %d of length : %d \n", frameCounter, readed);
     frameCounter++;
+
+    //TODO: Check if the mac address is our own
 
     //Convert the frame to ethernet header
     struct eth_hdr *hdr = (struct eth_hdr *) buf;
@@ -237,7 +243,6 @@ uint32_t getLocalIpAddress()
 void setLocalIpAddress(uint32_t ip)
 {
     localIpAddress = ip;
-
 }
 
 int setRouteToCard(char *cardName, char *cidr)
@@ -247,4 +252,15 @@ int setRouteToCard(char *cardName, char *cidr)
     //TODO: Add return
 
     return system(command);
+}
+
+char * getBroadcastMacAddress()
+{
+    return broadcastMacAddress;
+}
+
+void initializeEthernet()
+{
+    printf("Initializing ethernet");
+    scanfMacAdress("ff:ff:ff:ff:ff:ff", (char *) broadcastMacAddress);
 }
